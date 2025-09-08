@@ -12,7 +12,6 @@ import requests
 
 # 환경 변수 로드
 load_dotenv()
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # Perplexity API 설정
 PERPLEXITY_API_KEY = os.getenv('Perplexity_API_KEY')
@@ -44,6 +43,7 @@ def get_tone_description(tone):
 def generate_titles(keyword, tone='informative'):
     """키워드와 톤 기반으로 제목 5개 생성"""
     try:
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         tone_prompt = get_tone_prompt(tone)
         tone_desc = get_tone_description(tone)
         
@@ -221,6 +221,7 @@ def generate_fallback_outline(keyword):
 def generate_thumbnail_prompts(keyword, tone='informative'):
     """키워드와 톤 기반으로 썸네일 프롬프트 3개 생성"""
     try:
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         tone_desc = get_tone_description(tone)
         
         response = client.chat.completions.create(

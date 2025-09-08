@@ -23,9 +23,6 @@ load_dotenv()
 NAVER_CLIENT_ID = os.getenv('NAVER_CLIENT_ID')
 NAVER_CLIENT_SECRET = os.getenv('NAVER_CLIENT_SECRET')
 
-# OpenAI 클라이언트 초기화 (롱테일 키워드용)
-openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -994,6 +991,7 @@ def generate_longtail_keywords(keyword):
     try:
         print(f"[롱테일 키워드] '{keyword}' 기반 생성 시작")
         
+        openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         response = openai_client.chat.completions.create(
             model="gpt-4.1-nano",  # 정확한 GPT-4.1 Nano 모델명
             messages=[
