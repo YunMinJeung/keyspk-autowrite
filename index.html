@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>키워드 검색 도구</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>키워드 검색 도구</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">키워드 검색</a></li>
+                    <li><a href="#">검색 기록</a></li>
+                    <li><a href="#">키워드 추적</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section class="search-section">
+                <form id="searchForm">
+                    <div class="search-input">
+                        <input type="text" id="keyword" placeholder="검색할 키워드를 입력하세요">
+                        <button type="submit">검색하기</button>
+                    </div>
+                </form>
+
+                <div class="search-results">
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h2>검색 결과</h2>
+                        </div>
+                        <div class="result-content">
+                            <div class="data-point">
+                                <h3>키워드 최초 등장일</h3>
+                                <p id="firstAppearance">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>키워드 등급</h3>
+                                <p id="opportunityGrade">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>성인 키워드 여부</h3>
+                                <p id="isAdult">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>검색 광고 효율</h3>
+                                <p id="adEfficiency">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>월간 검색량</h3>
+                                <p id="totalSearchVolume">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>PC 검색량</h3>
+                                <p id="pcSearchVolume">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>Mobile 검색량</h3>
+                                <p id="mobileSearchVolume">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>월간 콘텐츠 발행량</h3>
+                                <p id="totalContentCount">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>블로그 발행량</h3>
+                                <p id="blogContentCount">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>카페 발행량</h3>
+                                <p id="cafeContentCount">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>월간 검색량</h3>
+                                <p id="monthlySearchVolume">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>일별 예상 검색량</h3>
+                                <p id="dailySearchVolume">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>현재까지 검색량</h3>
+                                <p id="monthToDateVolume">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>남은 일수 예상 검색량</h3>
+                                <p id="remainingSearchVolume">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>월간 진행률</h3>
+                                <p id="monthlyPercentage">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>콘텐츠 포화 지수</h3>
+                                <p id="totalSaturation">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>블로그 포화 지수</h3>
+                                <p id="blogSaturation">-</p>
+                            </div>
+                            <div class="data-point">
+                                <h3>카페 포화 지수</h3>
+                                <p id="cafeSaturation">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="related-keywords">
+                        <h3>관련 키워드</h3>
+                        <div class="keywords-list" id="relatedKeywords">
+                            <!-- 관련 키워드가 동적으로 추가됩니다 -->
+                        </div>
+                    </div>
+
+                    <div class="blog-posts">
+                        <h3>블로그 포스팅</h3>
+                        <div class="posts-list" id="blogPosts">
+                            <!-- 블로그 포스팅이 동적으로 추가됩니다 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 키워드 검색 도구. All rights reserved.</p>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

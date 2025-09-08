@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전체글 완성 도구</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Pretendard', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%);
+            color: #e2e8f0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* 헤더 */
+        .header {
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .back-button {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .back-button:hover {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+            color: #93c5fd;
+            text-decoration: none;
+        }
+
+        .keyword-badge {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* 컨테이너 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 제목 영역 */
+        .title-section {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .title-section:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+        }
+
+        .title-display {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .title-display:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .title-input {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 0.8rem;
+            color: #f1f5f9;
+            width: 100%;
+            display: none;
+        }
+
+        .title-input:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .edit-icon {
+            color: #94a3b8;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .title-display:hover .edit-icon {
+            opacity: 1;
+            color: #60a5fa;
+        }
+
+        /* 본문 영역 */
+        .content-section {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            margin-bottom: 2rem;
+            min-height: 600px;
+            max-height: 800px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .content-section:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+        }
+
+        .loading-content {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #94a3b8;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(59, 130, 246, 0.1);
+            border-top: 4px solid #60a5fa;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .article-content {
+            color: #e2e8f0;
+            line-height: 1.8;
+        }
+
+        .article-content h2 {
+            color: #60a5fa;
+            font-size: 1.6rem;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .article-content h3 {
+            color: #93c5fd;
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.8rem 0;
+        }
+
+        .article-content p {
+            margin-bottom: 1.2rem;
+            color: #cbd5e1;
+        }
+
+        .article-content ul, .article-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+            color: #cbd5e1;
+        }
+
+        /* 썸네일 섹션 */
+        .thumbnail-section {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .thumbnail-section:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            color: #f1f5f9;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .thumbnail-item {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .thumbnail-text {
+            color: #cbd5e1;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn:hover {
+            background: rgba(34, 197, 94, 0.3);
+        }
+
+        /* 액션 버튼 영역 */
+        .action-section {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .action-section:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .action-btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-regenerate {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-regenerate:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-edit:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-download:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-publish {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+        }
+
+        .btn-publish:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* 내보내기 드롭다운 */
+        .export-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .export-dropdown-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .export-dropdown-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .export-dropdown-btn .dropdown-arrow {
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .export-dropdown.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .export-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 0.5rem 0;
+            margin-top: 0.5rem;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .export-dropdown.open .export-dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .export-option {
+            padding: 0.8rem 1rem;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.9rem;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .export-option:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+
+        .export-option i {
+            width: 16px;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .export-option:hover i {
+            color: #60a5fa;
+        }
+
+        /* 내보내기 모달 */
+        .export-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .export-modal-content {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .export-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .export-modal-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .export-modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .export-modal-close:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .export-category {
+            margin-bottom: 2rem;
+        }
+
+        .export-category-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #60a5fa;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .export-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .export-item:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .export-item-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .export-item-icon {
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+
+        .export-item-name {
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
+        .export-item-format {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .export-item-btn {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .export-item-btn:hover {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .export-modal-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .export-close-btn {
+            background: rgba(100, 116, 139, 0.2);
+            color: #64748b;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .export-close-btn:hover {
+            background: rgba(100, 116, 139, 0.3);
+        }
+
+        /* 글 끝 복사 버튼 */
+        .article-end-actions {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid rgba(59, 130, 246, 0.2);
+            text-align: center;
+        }
+
+        .article-copy-btn {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
+        }
+
+        .article-copy-btn:hover {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .title-display {
+                font-size: 1.4rem;
+            }
+
+            .title-input {
+                font-size: 1.4rem;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <a href="/topic-generator" class="back-button">
+            <i class="fas fa-arrow-left"></i> 글감 생성으로 돌아가기
+        </a>
+        <div class="keyword-badge">
+            <i class="fas fa-tag"></i>
+            <span id="keywordDisplay">키워드</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 제목 영역 -->
+        <div class="title-section">
+            <div class="title-display" id="titleDisplay" onclick="editTitle()">
+                <span id="titleText">글 제목</span>
+                <i class="fas fa-edit edit-icon"></i>
+            </div>
+            <input type="text" class="title-input" id="titleInput" onblur="saveTitle()" onkeypress="handleTitleKeypress(event)">
+        </div>
+
+        <!-- 본문 영역 -->
+        <div class="content-section">
+            <div class="loading-content" id="loadingContent">
+                <div class="spinner"></div>
+                <p>AI가 전체 글을 작성하고 있습니다...</p>
+            </div>
+            <div class="article-content" id="articleContent">
+                <p style="text-align: center; color: #94a3b8; padding: 2rem;">
+                    글감 생성에서 데이터를 가져오는 중입니다...
+                </p>
+            </div>
+        </div>
+
+        <!-- 썸네일 섹션 -->
+        <div class="thumbnail-section">
+            <div class="section-title">
+                <i class="fas fa-image"></i> 썸네일 프롬프트
+            </div>
+            <div class="thumbnail-grid" id="thumbnailGrid">
+                <!-- 썸네일 프롬프트들이 여기에 표시됩니다 -->
+            </div>
+        </div>
+
+        <!-- 액션 버튼 영역 -->
+        <div class="action-section">
+            <div class="section-title">
+                <i class="fas fa-tools"></i> 액션
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn btn-regenerate" onclick="regenerateArticle()" id="regenerateBtn">
+                    <i class="fas fa-redo"></i> 다시 생성
+                </button>
+                <button class="action-btn btn-edit" onclick="editArticle()" id="editBtn">
+                    <i class="fas fa-edit"></i> 수정
+                </button>
+                <div class="export-dropdown" id="exportDropdown">
+                    <button class="action-btn export-dropdown-btn" onclick="toggleExportDropdown()" id="exportBtn">
+                        <i class="fas fa-download"></i> 내보내기
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </button>
+                    <div class="export-dropdown-menu">
+                        <button class="export-option" onclick="openExportModal()">
+                            <i class="fas fa-file-export"></i> 전체 내보내기 옵션
+                        </button>
+                        <button class="export-option" onclick="quickDownloadMarkdown()">
+                            <i class="fab fa-markdown"></i> 마크다운 (빠른 다운로드)
+                        </button>
+                        <button class="export-option" onclick="copyArticleToClipboard()">
+                            <i class="fas fa-copy"></i> 클립보드에 복사
+                        </button>
+                    </div>
+                </div>
+                <button class="action-btn btn-publish" onclick="publishArticle()" id="publishBtn">
+                    <i class="fas fa-rocket"></i> 게시
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 내보내기 모달 -->
+    <div class="export-modal" id="exportModal">
+        <div class="export-modal-content">
+            <div class="export-modal-header">
+                <div class="export-modal-title">
+                    <i class="fas fa-file-export"></i>
+                    내보내기
+                </div>
+                <button class="export-modal-close" onclick="closeExportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="export-category">
+                <div class="export-category-title">
+                    <i class="fas fa-file-text"></i> 텍스트 형식
+                </div>
+                <div class="export-item">
+                    <div class="export-item-info">
+                        <i class="fab fa-markdown export-item-icon"></i>
+                        <div>
+                            <div class="export-item-name">마크다운</div>
+                            <div class="export-item-format">(.md)</div>
+                        </div>
+                    </div>
+                    <button class="export-item-btn" onclick="exportAs('markdown')">다운로드</button>
+                </div>
+                <div class="export-item">
+                    <div class="export-item-info">
+                        <i class="fab fa-html5 export-item-icon"></i>
+                        <div>
+                            <div class="export-item-name">HTML</div>
+                            <div class="export-item-format">(.html)</div>
+                        </div>
+                    </div>
+                    <button class="export-item-btn" onclick="exportAs('html')">다운로드</button>
+                </div>
+                <div class="export-item">
+                    <div class="export-item-info">
+                        <i class="fas fa-file-alt export-item-icon"></i>
+                        <div>
+                            <div class="export-item-name">일반 텍스트</div>
+                            <div class="export-item-format">(.txt)</div>
+                        </div>
+                    </div>
+                    <button class="export-item-btn" onclick="exportAs('text')">다운로드</button>
+                </div>
+            </div>
+
+            <div class="export-category">
+                <div class="export-category-title">
+                    <i class="fas fa-file-contract"></i> 문서 형식
+                </div>
+                <div class="export-item">
+                    <div class="export-item-info">
+                        <i class="fas fa-file-pdf export-item-icon"></i>
+                        <div>
+                            <div class="export-item-name">PDF</div>
+                            <div class="export-item-format">(.pdf)</div>
+                        </div>
+                    </div>
+                    <button class="export-item-btn" onclick="exportAs('pdf')">다운로드</button>
+                </div>
+                <div class="export-item">
+                    <div class="export-item-info">
+                        <i class="fas fa-file-word export-item-icon"></i>
+                        <div>
+                            <div class="export-item-name">워드 문서</div>
+                            <div class="export-item-format">(.docx)</div>
+                        </div>
+                    </div>
+                    <button class="export-item-btn" onclick="exportAs('docx')">다운로드</button>
+                </div>
+            </div>
+
+            <div class="export-modal-footer">
+                <button class="export-close-btn" onclick="closeExportModal()">모두 닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script>
+        let currentData = null;
+        let originalTitle = '';
+
+        // 페이지 로드 시 세션 스토리지에서 데이터 가져오기
+        window.addEventListener('DOMContentLoaded', function() {
+            const topicData = sessionStorage.getItem('topicData');
+            if (topicData) {
+                currentData = JSON.parse(topicData);
+                console.log('글감 데이터 로드:', currentData);
+                console.log('썸네일 데이터 타입:', typeof currentData.thumbnails);
+                console.log('썸네일 데이터 내용:', currentData.thumbnails);
+                
+                // 데이터 유효성 검사
+                if (!validateTopicData(currentData)) {
+                    return; // validateTopicData에서 리다이렉트 처리
+                }
+                
+                // UI 업데이트
+                document.getElementById('keywordDisplay').textContent = currentData.keyword;
+                document.getElementById('titleText').textContent = currentData.selectedTitle;
+                originalTitle = currentData.selectedTitle;
+                
+                // 썸네일 표시
+                displayThumbnails(currentData.thumbnails);
+                
+                // 자동 생성 플래그 확인
+                if (currentData.canAutoGenerate) {
+                    // 자동으로 글 생성 시작
+                    generateArticle();
+                    // 플래그 제거 (한 번만 자동 실행)
+                    currentData.canAutoGenerate = false;
+                    sessionStorage.setItem('topicData', JSON.stringify(currentData));
+                } else {
+                    // 수동 시작 상태로 표시
+                    document.getElementById('articleContent').innerHTML = 
+                        `<div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                            <i class="fas fa-pen-fancy" style="font-size: 3rem; margin-bottom: 1rem; color: #60a5fa;"></i>
+                            <h3 style="margin-bottom: 1rem; color: #f1f5f9;">글이 준비되었습니다</h3>
+                            <p style="margin-bottom: 2rem;">아래 버튼을 클릭하여 새로운 글을 생성하거나 기존 글을 다시 생성할 수 있습니다.</p>
+                            <button onclick="generateArticle()" class="action-btn btn-regenerate" style="margin: 0 auto;">
+                                <i class="fas fa-magic"></i> 글 생성하기
+                            </button>
+                        </div>`;
+                }
+            } else {
+                // 데이터가 없으면 글감 생성으로 리다이렉트
+                showNoDataMessage();
+            }
+        });
+
+        // 데이터 유효성 검사 함수
+        function validateTopicData(data) {
+            // 필수 데이터 확인
+            if (!data.keyword || !data.selectedTitle || !data.contentPlan || !data.selectedTone) {
+                console.warn('필수 데이터 누락');
+                showNoDataMessage();
+                return false;
+            }
+
+            // 타임스탬프 확인 (30분 = 1800000ms)
+            if (data.timestamp) {
+                const dataAge = Date.now() - data.timestamp;
+                const maxAge = 30 * 60 * 1000; // 30분
+                
+                if (dataAge > maxAge) {
+                    console.warn('데이터가 만료됨:', Math.round(dataAge / 60000) + '분 경과');
+                    showExpiredDataMessage();
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // 데이터 없음 메시지
+        function showNoDataMessage() {
+            document.getElementById('articleContent').innerHTML = 
+                `<div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem; color: #f59e0b;"></i>
+                    <h3 style="margin-bottom: 1rem; color: #f1f5f9;">글감 데이터가 없습니다</h3>
+                    <p style="margin-bottom: 2rem;">먼저 글감을 생성해주세요.</p>
+                </div>`;
+            
+            // 3초 후 리다이렉트
+            setTimeout(() => {
+                window.location.href = '/topic-generator';
+            }, 3000);
+        }
+
+        // 데이터 만료 메시지
+        function showExpiredDataMessage() {
+            sessionStorage.removeItem('topicData'); // 만료된 데이터 삭제
+            
+            document.getElementById('articleContent').innerHTML = 
+                `<div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                    <i class="fas fa-clock" style="font-size: 3rem; margin-bottom: 1rem; color: #f59e0b;"></i>
+                    <h3 style="margin-bottom: 1rem; color: #f1f5f9;">세션이 만료되었습니다</h3>
+                    <p style="margin-bottom: 2rem;">30분이 지나 데이터가 만료되었습니다. 새로운 글감을 생성해주세요.</p>
+                </div>`;
+            
+            // 3초 후 리다이렉트
+            setTimeout(() => {
+                window.location.href = '/topic-generator';
+            }, 3000);
+        }
+
+        // 전체 글 생성 함수 (스트리밍)
+        async function generateArticle() {
+            if (!currentData) return;
+
+            showLoading();
+            disableActions();
+
+            try {
+                const response = await fetch('/api/generate-article-stream', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        keyword: currentData.keyword,
+                        title: currentData.selectedTitle,
+                        outline: currentData.contentPlan,
+                        tone: currentData.selectedTone,
+                        thumbnails: currentData.thumbnails
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                // 스트리밍 처리
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let fullContent = '';
+
+                // 로딩 숨기고 실시간 타이핑 시작
+                hideLoading();
+                document.getElementById('articleContent').innerHTML = '<div id="streamingContent"></div>';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // 마지막 불완전한 줄 보관
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.content) {
+                                    fullContent += data.content;
+                                    // 실시간으로 마크다운을 HTML로 변환하여 표시
+                                    displayStreamingContent(fullContent);
+                                }
+                                if (data.done) {
+                                    currentData.generatedContent = fullContent;
+                                    console.log('글 생성 완료');
+                                    break;
+                                }
+                                if (data.error) {
+                                    throw new Error(data.error);
+                                }
+                            } catch (parseError) {
+                                console.warn('JSON 파싱 오류:', parseError);
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('글 생성 오류:', error);
+                hideLoading();
+                document.getElementById('articleContent').innerHTML = 
+                    `<p style="text-align: center; color: #ef4444; padding: 2rem;">
+                        글 생성 중 오류가 발생했습니다: ${error.message}
+                    </p>`;
+            } finally {
+                enableActions();
+            }
+        }
+
+        // 글 재생성 함수 (스트리밍)
+        async function regenerateArticle() {
+            if (!currentData) return;
+
+            if (!confirm('새로운 내용으로 글을 다시 생성하시겠습니까?')) return;
+
+            showLoading();
+            disableActions();
+
+            try {
+                const response = await fetch('/api/regenerate-article', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        keyword: currentData.keyword,
+                        title: currentData.selectedTitle,
+                        outline: currentData.contentPlan,
+                        tone: currentData.selectedTone,
+                        thumbnails: currentData.thumbnails
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                // 스트리밍 처리 (generateArticle과 동일)
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let fullContent = '';
+
+                // 로딩 숨기고 실시간 타이핑 시작
+                hideLoading();
+                document.getElementById('articleContent').innerHTML = '<div id="streamingContent"></div>';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.content) {
+                                    fullContent += data.content;
+                                    displayStreamingContent(fullContent);
+                                }
+                                if (data.done) {
+                                    currentData.generatedContent = fullContent;
+                                    console.log('글 재생성 완료');
+                                    break;
+                                }
+                                if (data.error) {
+                                    throw new Error(data.error);
+                                }
+                            } catch (parseError) {
+                                console.warn('JSON 파싱 오류:', parseError);
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('글 재생성 오류:', error);
+                alert(`글 재생성 중 오류가 발생했습니다: ${error.message}`);
+            } finally {
+                enableActions();
+            }
+        }
+
+        // 마크다운을 HTML로 변환하여 표시
+        function displayArticle(markdownContent) {
+            if (typeof marked !== 'undefined') {
+                const htmlContent = marked.parse(markdownContent);
+                document.getElementById('articleContent').innerHTML = htmlContent;
+            } else {
+                // marked가 로드되지 않은 경우 원본 텍스트 표시
+                document.getElementById('articleContent').innerHTML = 
+                    `<pre style="white-space: pre-wrap; font-family: inherit;">${markdownContent}</pre>`;
+            }
+        }
+
+        // 실시간 스트리밍 콘텐츠 표시
+        function displayStreamingContent(markdownContent) {
+            if (typeof marked !== 'undefined') {
+                const htmlContent = marked.parse(markdownContent);
+                document.getElementById('streamingContent').innerHTML = htmlContent;
+            } else {
+                // marked가 로드되지 않은 경우 원본 텍스트 표시
+                document.getElementById('streamingContent').innerHTML = 
+                    `<pre style="white-space: pre-wrap; font-family: inherit;">${markdownContent}</pre>`;
+            }
+            
+            // 글 끝에 복사 버튼 추가
+            addArticleEndActions();
+            
+            // 스크롤을 맨 아래로 이동 (타이핑 효과를 위해)
+            const contentSection = document.querySelector('.content-section');
+            contentSection.scrollTop = contentSection.scrollHeight;
+        }
+
+        // 글 끝에 액션 버튼들 추가
+        function addArticleEndActions() {
+            // 기존 액션 버튼이 있으면 제거
+            const existingActions = document.getElementById('articleEndActions');
+            if (existingActions) {
+                existingActions.remove();
+            }
+
+            // 새 액션 버튼 추가
+            const actionsDiv = document.createElement('div');
+            actionsDiv.id = 'articleEndActions';
+            actionsDiv.className = 'article-end-actions';
+            actionsDiv.innerHTML = `
+                <button class="article-copy-btn" onclick="copyArticleToClipboard()">
+                    <i class="fas fa-copy"></i> 전체 글 복사하기
+                </button>
+            `;
+            
+            document.getElementById('streamingContent').appendChild(actionsDiv);
+            document.getElementById('articleContent').appendChild(actionsDiv);
+        }
+
+        // 썸네일 표시 함수
+        function displayThumbnails(thumbnails) {
+            console.log('[디버그] displayThumbnails 호출됨');
+            console.log('[디버그] thumbnails 타입:', typeof thumbnails);
+            console.log('[디버그] thumbnails 내용:', thumbnails);
+            
+            const container = document.getElementById('thumbnailGrid');
+            container.innerHTML = '';
+
+            if (thumbnails && thumbnails.length > 0) {
+                thumbnails.forEach((thumbnail, index) => {
+                    console.log(`[디버그] thumbnail ${index}:`, thumbnail, typeof thumbnail);
+                    
+                    let thumbnailText;
+                    if (typeof thumbnail === 'string') {
+                        thumbnailText = thumbnail;
+                    } else if (thumbnail && typeof thumbnail === 'object') {
+                        // 객체인 경우, 값만 추출 (키는 무시)
+                        const keys = Object.keys(thumbnail);
+                        if (keys.length > 0) {
+                            thumbnailText = thumbnail[keys[0]]; // 첫 번째 값 사용
+                        } else {
+                            thumbnailText = JSON.stringify(thumbnail);
+                        }
+                    } else {
+                        thumbnailText = String(thumbnail);
+                    }
+                    
+                    console.log(`[디버그] 최종 thumbnailText ${index}:`, thumbnailText);
+                    
+                    // 안전한 문자열 escape 처리
+                    const escapedText = thumbnailText.replace(/'/g, "\\'").replace(/"/g, '\\"');
+                    
+                    const thumbnailItem = document.createElement('div');
+                    thumbnailItem.className = 'thumbnail-item';
+                    thumbnailItem.innerHTML = `
+                        <div class="thumbnail-text">${index + 1}. ${thumbnailText}</div>
+                        <button class="copy-btn" onclick="copyToClipboard('${escapedText}')">
+                            <i class="fas fa-copy"></i> 복사하기
+                        </button>
+                    `;
+                    container.appendChild(thumbnailItem);
+                });
+            } else {
+                container.innerHTML = '<p style="color: #94a3b8;">썸네일 프롬프트가 없습니다.</p>';
+            }
+        }
+
+        // 제목 편집 함수들
+        function editTitle() {
+            const titleDisplay = document.getElementById('titleDisplay');
+            const titleInput = document.getElementById('titleInput');
+            const titleText = document.getElementById('titleText').textContent;
+
+            titleInput.value = titleText;
+            titleDisplay.style.display = 'none';
+            titleInput.style.display = 'block';
+            titleInput.focus();
+            titleInput.select();
+        }
+
+        function saveTitle() {
+            const titleDisplay = document.getElementById('titleDisplay');
+            const titleInput = document.getElementById('titleInput');
+            const newTitle = titleInput.value.trim();
+
+            if (newTitle && newTitle !== originalTitle) {
+                document.getElementById('titleText').textContent = newTitle;
+                if (currentData) {
+                    currentData.selectedTitle = newTitle;
+                }
+                originalTitle = newTitle;
+            }
+
+            titleInput.style.display = 'none';
+            titleDisplay.style.display = 'flex';
+        }
+
+        function handleTitleKeypress(event) {
+            if (event.key === 'Enter') {
+                event.target.blur();
+            }
+        }
+
+        // 유틸리티 함수들
+        function showLoading() {
+            document.getElementById('loadingContent').style.display = 'block';
+            document.getElementById('articleContent').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingContent').style.display = 'none';
+            document.getElementById('articleContent').style.display = 'block';
+        }
+
+        function disableActions() {
+            document.getElementById('regenerateBtn').disabled = true;
+            document.getElementById('editBtn').disabled = true;
+            document.getElementById('exportBtn').disabled = true;
+            document.getElementById('publishBtn').disabled = true;
+        }
+
+        function enableActions() {
+            document.getElementById('regenerateBtn').disabled = false;
+            document.getElementById('editBtn').disabled = false;
+            document.getElementById('exportBtn').disabled = false;
+            document.getElementById('publishBtn').disabled = false;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('클립보드에 복사되었습니다!', 'success');
+            }).catch(err => {
+                console.error('복사 실패:', err);
+                showToast('복사에 실패했습니다.', 'error');
+            });
+        }
+
+        // 내보내기 드롭다운 토글
+        function toggleExportDropdown() {
+            const dropdown = document.getElementById('exportDropdown');
+            dropdown.classList.toggle('open');
+            
+            // 다른 곳 클릭 시 드롭다운 닫기
+            document.addEventListener('click', function closeDropdown(e) {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('open');
+                    document.removeEventListener('click', closeDropdown);
+                }
+            });
+        }
+
+        // 내보내기 모달 열기
+        function openExportModal() {
+            document.getElementById('exportModal').style.display = 'flex';
+            document.getElementById('exportDropdown').classList.remove('open');
+            document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+        }
+
+        // 내보내기 모달 닫기
+        function closeExportModal() {
+            document.getElementById('exportModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // 모달 배경 클릭 시 닫기
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('exportModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeExportModal();
+                    }
+                });
+            }
+        });
+
+        // 전체 글 복사
+        function copyArticleToClipboard() {
+            if (!currentData || !currentData.generatedContent) {
+                showToast('복사할 글이 없습니다.', 'error');
+                return;
+            }
+
+            copyToClipboard(currentData.generatedContent);
+            document.getElementById('exportDropdown').classList.remove('open');
+        }
+
+        // 마크다운 빠른 다운로드
+        function quickDownloadMarkdown() {
+            if (!currentData || !currentData.generatedContent) {
+                showToast('다운로드할 글이 없습니다.', 'error');
+                return;
+            }
+
+            const content = currentData.generatedContent;
+            const title = currentData.selectedTitle || 'article';
+            const filename = `${title.replace(/[^a-zA-Z0-9가-힣]/g, '_')}.md`;
+
+            downloadFile(content, filename, 'text/markdown;charset=utf-8');
+            document.getElementById('exportDropdown').classList.remove('open');
+        }
+
+        // 내보내기 함수
+        function exportAs(format) {
+            if (!currentData || !currentData.generatedContent) {
+                showToast('내보낼 글이 없습니다.', 'error');
+                return;
+            }
+
+            const content = currentData.generatedContent;
+            const title = currentData.selectedTitle || 'article';
+            const cleanTitle = title.replace(/[^a-zA-Z0-9가-힣]/g, '_');
+
+            switch (format) {
+                case 'markdown':
+                    downloadFile(content, `${cleanTitle}.md`, 'text/markdown;charset=utf-8');
+                    break;
+                
+                case 'html':
+                    const htmlContent = convertToHTML(content, title);
+                    downloadFile(htmlContent, `${cleanTitle}.html`, 'text/html;charset=utf-8');
+                    break;
+                
+                case 'text':
+                    const textContent = convertToPlainText(content);
+                    downloadFile(textContent, `${cleanTitle}.txt`, 'text/plain;charset=utf-8');
+                    break;
+                
+                case 'pdf':
+                    exportToPDF(content, title);
+                    break;
+                
+                case 'docx':
+                    exportToWord(content, title);
+                    break;
+                
+                default:
+                    showToast('지원하지 않는 형식입니다.', 'error');
+            }
+
+            closeExportModal();
+        }
+
+        // 파일 다운로드 유틸리티
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showToast(`${filename} 다운로드 완료!`, 'success');
+        }
+
+        // 마크다운을 HTML로 변환
+        function convertToHTML(markdownContent, title) {
+            let htmlContent = '';
+            
+            if (typeof marked !== 'undefined') {
+                htmlContent = marked.parse(markdownContent);
+            } else {
+                // marked가 없으면 간단한 변환
+                htmlContent = markdownContent
+                    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br>');
+                htmlContent = '<p>' + htmlContent + '</p>';
+            }
+
+            return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 2rem; }
+        h1, h2, h3 { color: #333; }
+        h1 { border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
+        h2 { border-bottom: 1px solid #ccc; padding-bottom: 0.3rem; }
+        p { margin-bottom: 1rem; }
+        ul, ol { margin-left: 2rem; }
+    </style>
+</head>
+<body>
+    ${htmlContent}
+</body>
+</html>`;
+        }
+
+        // 마크다운을 일반 텍스트로 변환
+        function convertToPlainText(markdownContent) {
+            return markdownContent
+                .replace(/^#+\s/gm, '')  // 헤더 마크다운 제거
+                .replace(/\*\*(.*?)\*\*/g, '$1')  // 볼드 제거
+                .replace(/\*(.*?)\*/g, '$1')  // 이탤릭 제거
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // 링크를 텍스트만 남김
+                .replace(/`([^`]+)`/g, '$1')  // 인라인 코드 제거
+                .replace(/```[\s\S]*?```/g, '')  // 코드 블록 제거
+                .replace(/^\s*[-*+]\s/gm, '• ')  // 리스트를 불릿으로
+                .replace(/^\s*\d+\.\s/gm, '');  // 번호 리스트 번호 제거
+        }
+
+        // PDF로 내보내기
+        function exportToPDF(content, title) {
+            // 동적으로 jsPDF 로드
+            if (typeof window.jspdf === 'undefined') {
+                showToast('PDF 라이브러리를 로드하는 중입니다...', 'info');
+                
+                // jsPDF 스크립트 동적 로드
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                script.onload = function() {
+                    console.log('jsPDF 로드 완료');
+                    exportToPDF(content, title); // 재귀 호출
+                };
+                script.onerror = function() {
+                    showToast('PDF 라이브러리 로드에 실패했습니다.', 'error');
+                };
+                document.head.appendChild(script);
+                return;
+            }
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // 폰트 설정
+                doc.setFont('helvetica');
+                
+                // 제목 추가
+                doc.setFontSize(18);
+                doc.text(title, 20, 25);
+                
+                // 내용을 일반 텍스트로 변환
+                const plainText = convertToPlainText(content);
+                
+                // 텍스트를 페이지에 맞게 분할
+                doc.setFontSize(11);
+                const splitText = doc.splitTextToSize(plainText, 170);
+                
+                let yPosition = 40;
+                const pageHeight = doc.internal.pageSize.height - 20;
+                
+                splitText.forEach(line => {
+                    if (yPosition > pageHeight) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    doc.text(line, 20, yPosition);
+                    yPosition += 6;
+                });
+                
+                // 파일명 생성
+                const filename = `${title.replace(/[^a-zA-Z0-9가-힣\s]/g, '_')}.pdf`;
+                
+                // PDF 저장
+                doc.save(filename);
+                showToast(`PDF 다운로드 완료: ${filename}`, 'success');
+                
+            } catch (error) {
+                console.error('PDF 생성 오류:', error);
+                showToast('PDF 생성 중 오류가 발생했습니다: ' + error.message, 'error');
+            }
+        }
+
+        // 워드 문서로 내보내기 (RTF 형식)
+        function exportToWord(content, title) {
+            try {
+                // 마크다운을 RTF로 변환
+                const rtfContent = convertToRTF(content, title);
+                
+                // 파일명 생성
+                const filename = `${title.replace(/[^a-zA-Z0-9가-힣\s]/g, '_')}.rtf`;
+                
+                // RTF 파일 다운로드
+                downloadFile(rtfContent, filename, 'application/rtf;charset=utf-8');
+                
+            } catch (error) {
+                console.error('워드 문서 생성 오류:', error);
+                showToast('워드 문서 생성 중 오류가 발생했습니다: ' + error.message, 'error');
+            }
+        }
+
+        // 마크다운을 RTF로 변환
+        function convertToRTF(markdownContent, title) {
+            // RTF 헤더
+            let rtf = '{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}';
+            
+            // 제목 추가
+            rtf += '\\f0\\fs28\\b ' + escapeRTF(title) + '\\b0\\par\\par';
+            
+            // 내용 처리
+            const lines = markdownContent.split('\n');
+            
+            for (let line of lines) {
+                line = line.trim();
+                
+                if (line === '') {
+                    rtf += '\\par';
+                    continue;
+                }
+                
+                // 헤더 처리
+                if (line.startsWith('### ')) {
+                    rtf += '\\fs22\\b ' + escapeRTF(line.substring(4)) + '\\b0\\par\\par';
+                } else if (line.startsWith('## ')) {
+                    rtf += '\\fs24\\b ' + escapeRTF(line.substring(3)) + '\\b0\\par\\par';
+                } else if (line.startsWith('# ')) {
+                    rtf += '\\fs26\\b ' + escapeRTF(line.substring(2)) + '\\b0\\par\\par';
+                }
+                // 리스트 처리
+                else if (line.startsWith('- ') || line.startsWith('* ')) {
+                    rtf += '\\bullet ' + escapeRTF(line.substring(2)) + '\\par';
+                }
+                // 번호 리스트 처리
+                else if (/^\d+\.\s/.test(line)) {
+                    const match = line.match(/^(\d+)\.\s(.+)$/);
+                    if (match) {
+                        rtf += match[1] + '. ' + escapeRTF(match[2]) + '\\par';
+                    }
+                }
+                // 일반 텍스트
+                else {
+                    // 볼드 처리
+                    line = line.replace(/\*\*(.*?)\*\*/g, '\\b $1\\b0');
+                    // 이탤릭 처리
+                    line = line.replace(/\*(.*?)\*/g, '\\i $1\\i0');
+                    
+                    rtf += '\\fs20 ' + escapeRTF(line) + '\\par';
+                }
+            }
+            
+            rtf += '}';
+            return rtf;
+        }
+
+        // RTF용 특수문자 이스케이프
+        function escapeRTF(text) {
+            return text
+                .replace(/\\/g, '\\\\')
+                .replace(/{/g, '\\{')
+                .replace(/}/g, '\\}')
+                .replace(/\n/g, '\\par ')
+                .replace(/\t/g, '\\tab ');
+        }
+
+        // 토스트 알림 표시
+        function showToast(message, type = 'info') {
+            // 기존 토스트 제거
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'rgba(34, 197, 94, 0.9)' : 
+                           type === 'error' ? 'rgba(239, 68, 68, 0.9)' : 
+                           'rgba(59, 130, 246, 0.9)'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                font-weight: 500;
+                z-index: 10001;
+                animation: toastSlideIn 0.3s ease;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            `;
+            toast.textContent = message;
+            
+            // 애니메이션 CSS 추가
+            if (!document.querySelector('#toastStyles')) {
+                const style = document.createElement('style');
+                style.id = 'toastStyles';
+                style.textContent = `
+                    @keyframes toastSlideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes toastSlideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(toast);
+            
+            // 3초 후 자동 제거
+            setTimeout(() => {
+                toast.style.animation = 'toastSlideOut 0.3s ease';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // 액션 함수들 (기본 구현)
+        function editArticle() {
+            showToast('수정 기능은 추후 구현 예정입니다.', 'info');
+        }
+
+        function publishArticle() {
+            showToast('게시 기능은 추후 구현 예정입니다.', 'info');
+        }
+    </script>
+</body>
+</html>

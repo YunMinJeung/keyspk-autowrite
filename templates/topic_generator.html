@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글감 생성 도구</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Pretendard', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%);
+            color: #e2e8f0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* 네비게이션 */
+        .navbar {
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .nav-brand {
+            color: #60a5fa;
+            text-decoration: none;
+            font-size: 1.4rem;
+            font-weight: 700;
+            padding: 1.2rem 0;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-brand:hover {
+            color: #93c5fd;
+            transform: translateY(-1px);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin-left: auto;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+
+        .nav-link:hover {
+            color: #f1f5f9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+        }
+
+        .nav-link:hover::before {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 197, 253, 0.1));
+            color: #f1f5f9;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #60a5fa, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.8rem;
+            margin-bottom: 3rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        /* 키워드 입력 섹션 */
+        .keyword-section {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            margin-bottom: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .keyword-section:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #f1f5f9;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .keyword-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            outline: none;
+            color: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .keyword-input::placeholder {
+            color: #64748b;
+        }
+
+        .keyword-input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: rgba(15, 23, 42, 1);
+        }
+
+        .generate-button {
+            margin-left: 1rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .generate-button:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        /* 로딩 */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            color: #cbd5e1;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(59, 130, 246, 0.1);
+            border-top: 4px solid #60a5fa;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 결과 섹션들 */
+        .result-section {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .result-section:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+        }
+
+        /* 제목 추천 섹션 */
+        .title-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .title-item {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .title-item:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(15, 23, 42, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .title-text {
+            font-size: 1rem;
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
+        .title-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .copy-btn, .select-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .copy-btn {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .copy-btn:hover {
+            background: rgba(34, 197, 94, 0.3);
+        }
+
+        .select-btn {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .select-btn:hover {
+            background: rgba(59, 130, 246, 0.3);
+        }
+
+        .selected {
+            border-color: #22c55e !important;
+            background: rgba(34, 197, 94, 0.1) !important;
+        }
+
+        /* 콘텐츠 기획 섹션 */
+        .content-plan-area {
+            margin-top: 1rem;
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: #e2e8f0;
+            line-height: 1.6;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* 문체/톤 섹션 */
+        .tone-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .tone-option {
+            background: rgba(15, 23, 42, 0.5);
+            border: 2px solid rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            padding: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .tone-option:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tone-option.selected {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .tone-name {
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 0.5rem;
+        }
+
+        .tone-description {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        /* 썸네일 프롬프트 섹션 */
+        .thumbnail-list {
+            margin-top: 1rem;
+        }
+
+        .thumbnail-item {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .thumbnail-item:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .thumbnail-text {
+            color: #e2e8f0;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        /* 다음 단계 버튼 */
+        .next-step-section {
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .next-step-button {
+            padding: 1.2rem 3rem;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
+        }
+
+        .next-step-button:hover {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.3);
+        }
+
+        .next-step-button:disabled {
+            background: rgba(100, 116, 139, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .container {
+                padding: 2rem 1rem;
+            }
+
+            .keyword-input {
+                margin-bottom: 1rem;
+                max-width: 100%;
+            }
+
+            .generate-button {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .tone-options {
+                grid-template-columns: 1fr;
+            }
+
+            .title-actions {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <i class="fas fa-chart-line"></i> 키워드 스파크
+            </a>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link">
+                        <i class="fas fa-search"></i> 키워드 분석
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/topic-generator" class="nav-link active">
+                        <i class="fas fa-pen-fancy"></i> 글감 생성
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/draft-writer" class="nav-link">
+                        <i class="fas fa-edit"></i> 전체글 완성
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/quality-check" class="nav-link">
+                        <i class="fas fa-check-circle"></i> 품질 평가
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="showExportNotice()">
+                        <i class="fas fa-download"></i> 내보내기
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1><i class="fas fa-pen-fancy"></i> 글감 생성 도구</h1>
+        
+        <!-- 키워드 입력 섹션 -->
+        <div class="keyword-section">
+            
+            <input type="text" id="keyword" class="keyword-input" placeholder="글감을 생성할 키워드를 입력하세요">
+            <button onclick="generateTopics()" class="generate-button">
+                <i class="fas fa-magic"></i> 글감 생성
+            </button>
+        </div>
+
+        <!-- 로딩 -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>AI가 글감을 생성하고 있습니다...</p>
+        </div>
+
+        <!-- 제목 추천 섹션 -->
+        <div id="titleSection" class="result-section">
+            <div class="section-title">
+                <i class="fas fa-lightbulb"></i> 제목 추천 (클릭해서 선택)
+            </div>
+            <ul id="titleList" class="title-list">
+                <!-- 제목들이 여기에 동적으로 추가됩니다 -->
+            </ul>
+        </div>
+
+        <!-- 콘텐츠 기획 섹션 -->
+        <div id="contentPlanSection" class="result-section">
+            <div class="section-title">
+                <i class="fas fa-clipboard-list"></i> 콘텐츠 기획 (최신 정보 조사)
+            </div>
+            <div id="contentPlanArea" class="content-plan-area">
+                <!-- 콘텐츠 기획 정보가 여기에 동적으로 추가됩니다 -->
+            </div>
+        </div>
+
+        <!-- 문체/톤 섹션 -->
+        <div id="toneSection" class="result-section">
+            <div class="section-title">
+                <i class="fas fa-user-edit"></i> 문체/톤 선택
+            </div>
+            <div class="tone-options">
+                <div class="tone-option" data-tone="informative">
+                    <div class="tone-name">정보 전달형</div>
+                    <div class="tone-description">객관적이고 전문적인 정보 제공</div>
+                </div>
+                <div class="tone-option" data-tone="review">
+                    <div class="tone-name">리뷰형</div>
+                    <div class="tone-description">개인 경험과 솔직한 후기 중심</div>
+                </div>
+                <div class="tone-option" data-tone="friendly">
+                    <div class="tone-name">친근한 설명형</div>
+                    <div class="tone-description">친구에게 설명하듯 편안한 말투</div>
+                </div>
+                <div class="tone-option" data-tone="expert">
+                    <div class="tone-name">전문가형</div>
+                    <div class="tone-description">깊이 있는 분석과 전문 지식</div>
+                </div>
+                <div class="tone-option" data-tone="storytelling">
+                    <div class="tone-name">스토리텔링형</div>
+                    <div class="tone-description">이야기로 풀어내는 흥미로운 구성</div>
+                </div>
+                <div class="tone-option" data-tone="comparison">
+                    <div class="tone-name">비교 분석형</div>
+                    <div class="tone-description">여러 옵션을 체계적으로 비교</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 썸네일 프롬프트 섹션 -->
+        <div id="thumbnailSection" class="result-section">
+            <div class="section-title">
+                <i class="fas fa-image"></i> 썸네일 프롬프트
+            </div>
+            <div id="thumbnailList" class="thumbnail-list">
+                <!-- 썸네일 프롬프트들이 여기에 동적으로 추가됩니다 -->
+            </div>
+        </div>
+
+        <!-- 다음 단계 버튼 -->
+        <div id="nextStepSection" class="next-step-section" style="display: none;">
+            <button id="nextStepButton" class="next-step-button" disabled>
+                <i class="fas fa-arrow-right"></i> 이 구조로 글 자동 생성하기
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let selectedTitle = null;
+        let selectedTone = null;
+        let generatedData = null;
+
+        // 페이지 로드 시 URL 파라미터에서 키워드 확인 및 세션 데이터 복원
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const keyword = urlParams.get('keyword');
+            if (keyword) {
+                document.getElementById('keyword').value = decodeURIComponent(keyword);
+            }
+            
+            // 세션 스토리지에서 이전 데이터 복원
+            const topicData = sessionStorage.getItem('topicData');
+            if (topicData) {
+                try {
+                    const savedData = JSON.parse(topicData);
+                    console.log('[복원] 이전 글감 데이터 발견:', savedData);
+                    
+                    // 키워드 복원
+                    if (savedData.keyword) {
+                        document.getElementById('keyword').value = savedData.keyword;
+                    }
+                    
+                    // API 응답 형태로 데이터 구성
+                    const restoredApiData = {
+                        keyword: savedData.keyword,
+                        tone: savedData.selectedTone || 'informative',
+                        titles: extractTitlesFromSaved(savedData),
+                        contentPlan: savedData.contentPlan,
+                        thumbnails: savedData.thumbnails || []
+                    };
+                    
+                    // generatedData 설정 및 UI 복원
+                    generatedData = restoredApiData;
+                    selectedTitle = savedData.selectedTitle;
+                    selectedTone = savedData.selectedTone;
+                    
+                    // UI 표시
+                    displayResults(restoredApiData);
+                    
+                    // 선택된 제목 표시
+                    if (selectedTitle) {
+                        highlightSelectedTitle(selectedTitle);
+                    }
+                    
+                    // 선택된 톤 표시
+                    if (selectedTone) {
+                        highlightSelectedTone(selectedTone);
+                    }
+                    
+                    // 톤 선택 이벤트 리스너 설정
+                    setupToneSelection();
+                    
+                    // 복원된 선택사항 확인
+                    checkRestoredSelections();
+                    
+                    console.log('[복원] 이전 상태 복원 완료');
+                    
+                } catch (e) {
+                    console.log('[복원] 데이터 파싱 오류:', e);
+                }
+            }
+        });
+        
+        // 저장된 데이터에서 제목 배열 추출
+        function extractTitlesFromSaved(savedData) {
+            // savedData에 titles가 있으면 사용, 없으면 selectedTitle로 배열 생성
+            if (savedData.titles && Array.isArray(savedData.titles)) {
+                return savedData.titles;
+            } else if (savedData.selectedTitle) {
+                return [savedData.selectedTitle];
+            }
+            return [];
+        }
+        
+        // 선택된 제목 하이라이트
+        function highlightSelectedTitle(titleText) {
+            const titleItems = document.querySelectorAll('.title-item');
+            titleItems.forEach(item => {
+                const titleElement = item.querySelector('.title-text');
+                if (titleElement && titleElement.textContent.includes(titleText)) {
+                    item.classList.add('selected');
+                }
+            });
+        }
+        
+        // 선택된 톤 하이라이트
+        function highlightSelectedTone(toneValue) {
+            const toneOptions = document.querySelectorAll('.tone-option');
+            toneOptions.forEach(option => {
+                if (option.dataset.tone === toneValue) {
+                    option.classList.add('selected');
+                }
+            });
+        }
+
+        // 글감 생성 함수
+        async function generateTopics() {
+            const keywordInput = document.getElementById('keyword');
+            const keyword = keywordInput.value.trim();
+            
+            if (!keyword) {
+                alert('키워드를 입력해주세요');
+                return;
+            }
+
+            // 현재 선택된 톤 가져오기 (없으면 기본값)
+            const selectedToneElement = document.querySelector('.tone-option.selected');
+            const tone = selectedToneElement ? selectedToneElement.dataset.tone : 'informative';
+
+            // 로딩 표시
+            showLoading();
+            hideAllSections();
+
+            try {
+                const response = await fetch('/api/generate-topics', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        keyword: keyword,
+                        tone: tone
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                generatedData = data;
+                console.log('[디버그] API 응답 데이터:', data);
+                console.log('[디버그] contentPlan 존재:', data.contentPlan);
+                console.log('[디버그] contentPlan 타입:', typeof data.contentPlan);
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('API 호출 에러:', error);
+                alert(`글감 생성 중 오류가 발생했습니다: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function hideAllSections() {
+            document.getElementById('titleSection').style.display = 'none';
+            document.getElementById('contentPlanSection').style.display = 'none';
+            document.getElementById('toneSection').style.display = 'none';
+            document.getElementById('thumbnailSection').style.display = 'none';
+            document.getElementById('nextStepSection').style.display = 'none';
+        }
+
+        function displayResults(data) {
+            // 제목 표시
+            displayTitles(data.titles);
+            
+            // 콘텐츠 기획 표시
+            displayContentPlan(data.contentPlan);
+            
+            // 썸네일 프롬프트 표시
+            displayThumbnails(data.thumbnails);
+            
+            // 섹션들 보이기
+            document.getElementById('titleSection').style.display = 'block';
+            document.getElementById('contentPlanSection').style.display = 'block';
+            document.getElementById('toneSection').style.display = 'block';
+            document.getElementById('thumbnailSection').style.display = 'block';
+            document.getElementById('nextStepSection').style.display = 'block';
+
+            // 톤 선택 이벤트 리스너 추가
+            setupToneSelection();
+        }
+
+        function displayTitles(titles) {
+            const titleList = document.getElementById('titleList');
+            titleList.innerHTML = '';
+
+            titles.forEach((title, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'title-item';
+                listItem.innerHTML = `
+                    <div class="title-text">${index + 1}. ${title}</div>
+                    <div class="title-actions">
+                        <button class="copy-btn" onclick="copyToClipboard('${title}')">
+                            <i class="fas fa-copy"></i> 복사
+                        </button>
+                        <button class="select-btn" onclick="selectTitle(${index}, '${title}')">
+                            <i class="fas fa-check"></i> 선택
+                        </button>
+                    </div>
+                `;
+                titleList.appendChild(listItem);
+            });
+        }
+
+        function displayContentPlan(contentPlan) {
+            const contentPlanArea = document.getElementById('contentPlanArea');
+            
+            if (contentPlan && contentPlan.type === 'content_plan' && contentPlan.content) {
+                // 마크다운 형식의 텍스트를 HTML로 변환
+                let htmlContent = contentPlan.content
+                    // # 제목들을 HTML로 변환
+                    .replace(/^### (.*$)/gm, '<h3 style="color: #60a5fa; margin: 1.5rem 0 0.8rem 0; font-size: 1.1rem;">$1</h3>')
+                    .replace(/^## (.*$)/gm, '<h2 style="color: #60a5fa; margin: 2rem 0 1rem 0; font-size: 1.3rem;">$1</h2>')
+                    .replace(/^# (.*$)/gm, '<h2 style="color: #60a5fa; margin: 2rem 0 1rem 0; font-size: 1.3rem;">$1</h2>')
+                    // 볼드 텍스트 변환
+                    .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #f1f5f9;">$1</strong>')
+                    // 이탤릭 텍스트 변환
+                    .replace(/\*(.*?)\*/g, '<em style="color: #cbd5e1;">$1</em>')
+                    // 링크 변환
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #60a5fa; text-decoration: underline;">$1</a>')
+                    // 줄바꿈 처리
+                    .replace(/\n\n/g, '</p><p style="margin: 0.8rem 0; line-height: 1.6;">')
+                    .replace(/\n/g, '<br>');
+                
+                // 시작과 끝에 p 태그 추가
+                htmlContent = '<div style="line-height: 1.6;"><p style="margin: 0.8rem 0;">' + htmlContent + '</p></div>';
+                
+                contentPlanArea.innerHTML = htmlContent;
+                
+                console.log('[콘텐츠 기획] Perplexity 데이터 표시 완료');
+            } else if (Array.isArray(contentPlan)) {
+                // 기존 outline 형식 처리 (fallback)
+                let htmlContent = '<h3 style="color: #60a5fa; margin-bottom: 1rem;">콘텐츠 구조 계획</h3>';
+                contentPlan.forEach((section, index) => {
+                    htmlContent += `<h4 style="color: #cbd5e1; margin: 1.5rem 0 0.8rem 0; font-size: 1.1rem;">${index + 1}. ${section.title}</h4>`;
+                    if (section.subsections) {
+                        htmlContent += '<ul style="margin-left: 1.5rem; color: #94a3b8;">';
+                        section.subsections.forEach(subsection => {
+                            htmlContent += `<li style="margin: 0.5rem 0; line-height: 1.4;">${subsection}</li>`;
+                        });
+                        htmlContent += '</ul>';
+                    }
+                });
+                contentPlanArea.innerHTML = htmlContent;
+                
+                console.log('[콘텐츠 기획] Fallback 아웃라인 표시 완료');
+            } else {
+                contentPlanArea.innerHTML = '<p style="color: #ef4444;">콘텐츠 기획 정보를 불러올 수 없습니다.</p>';
+                console.error('[콘텐츠 기획] 유효하지 않은 데이터:', contentPlan);
+            }
+        }
+
+        function displayThumbnails(thumbnails) {
+            const thumbnailList = document.getElementById('thumbnailList');
+            thumbnailList.innerHTML = '';
+
+            thumbnails.forEach((thumbnail, index) => {
+                // thumbnail이 객체인지 문자열인지 확인
+                const thumbnailText = typeof thumbnail === 'string' ? thumbnail : JSON.stringify(thumbnail);
+                
+                const thumbnailItem = document.createElement('div');
+                thumbnailItem.className = 'thumbnail-item';
+                thumbnailItem.innerHTML = `
+                    <div class="thumbnail-text">${index + 1}. ${thumbnailText}</div>
+                    <button class="copy-btn" onclick="copyToClipboard(\`${thumbnailText.replace(/`/g, '\\`')}\`)">
+                        <i class="fas fa-copy"></i> 복사하기
+                    </button>
+                `;
+                thumbnailList.appendChild(thumbnailItem);
+            });
+        }
+
+        function setupToneSelection() {
+            const toneOptions = document.querySelectorAll('.tone-option');
+            toneOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 다른 선택 해제
+                    toneOptions.forEach(opt => opt.classList.remove('selected'));
+                    // 현재 선택
+                    this.classList.add('selected');
+                    selectedTone = this.dataset.tone;
+                    
+                    checkAllSelections();
+                });
+            });
+        }
+
+        function selectTitle(index, title) {
+            // 이전 선택 해제
+            document.querySelectorAll('.title-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // 현재 선택
+            document.querySelectorAll('.title-item')[index].classList.add('selected');
+            selectedTitle = title;
+            
+            checkAllSelections();
+        }
+
+        function checkAllSelections() {
+            const nextButton = document.getElementById('nextStepButton');
+            if (selectedTitle && selectedTone) {
+                nextButton.disabled = false;
+                nextButton.onclick = goToNextStep;
+                
+                // 복원된 상태에서는 next step 섹션도 표시
+                document.getElementById('nextStepSection').style.display = 'block';
+            } else {
+                nextButton.disabled = true;
+            }
+        }
+        
+        // 페이지 로드 후 선택사항 확인 (복원된 상태에서 사용)
+        function checkRestoredSelections() {
+            if (selectedTitle && selectedTone) {
+                document.getElementById('nextStepSection').style.display = 'block';
+                const nextButton = document.getElementById('nextStepButton');
+                nextButton.disabled = false;
+                nextButton.onclick = goToNextStep;
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // 임시 알림 (나중에 더 예쁜 토스트로 변경 가능)
+                alert('클립보드에 복사되었습니다!');
+            }).catch(err => {
+                console.error('복사 실패:', err);
+            });
+        }
+
+        function goToNextStep() {
+            console.log('[디버그] goToNextStep 호출됨');
+            console.log('[디버그] generatedData:', generatedData);
+            console.log('[디버그] generatedData.contentPlan:', generatedData?.contentPlan);
+            
+            const dataToPass = {
+                keyword: document.getElementById('keyword').value,
+                selectedTitle: selectedTitle,
+                selectedTone: selectedTone,
+                contentPlan: generatedData?.contentPlan,  // undefined 방지를 위해 optional chaining 사용
+                thumbnails: generatedData?.thumbnails,
+                titles: generatedData?.titles,  // 제목 배열도 저장
+                tone: generatedData?.tone,      // 원본 톤도 저장
+                timestamp: Date.now(),  // 생성 시간 추가
+                canAutoGenerate: true   // 자동 생성 허용 플래그
+            };
+            
+            console.log('[디버그] 세션 스토리지에 저장할 데이터:', dataToPass);
+            
+            // 세션 스토리지에 데이터 저장
+            sessionStorage.setItem('topicData', JSON.stringify(dataToPass));
+            
+            // 전체글 완성 페이지로 이동
+            window.location.href = '/draft-writer';
+        }
+
+        // Enter 키 이벤트 처리
+        document.getElementById('keyword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateTopics();
+            }
+        });
+
+        // 내보내기 알림 함수
+        function showExportNotice() {
+            alert('내보내기 기능은 "전체글 완성" 페이지에서 사용할 수 있습니다.\n\n1. 글감 생성 완료\n2. 전체글 완성으로 이동\n3. 글 생성 후 내보내기 버튼 클릭');
+        }
+    </script>
+</body>
+</html>
