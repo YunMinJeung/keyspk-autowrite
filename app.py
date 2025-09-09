@@ -1067,8 +1067,8 @@ JSON 형식으로 응답해주세요:
         ]
 
 if __name__ == '__main__':
-    # Railway 버그로 인해 PORT 변수가 제대로 저장되지 않으므로 강제로 8080 사용
-    port = 8080
+    # Railway 환경변수에서 포트를 가져오되, Railway가 예상하는 포트 사용
+    port = int(os.environ.get('PORT', 8080))
     print(f"PORT environment variable value: '{os.environ.get('PORT', 'NOT_SET')}'")
-    print(f"Forcing port to: {port}")
+    print(f"Using port: {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
