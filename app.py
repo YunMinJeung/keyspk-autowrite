@@ -1067,16 +1067,8 @@ JSON 형식으로 응답해주세요:
         ]
 
 if __name__ == '__main__':
-    # Railway 포트 감지 및 디버깅
-    port_env = os.environ.get('PORT', 'NOT_SET')
-    print(f"PORT environment variable value: '{port_env}'")
-    print(f"PORT type: {type(port_env)}")
-    
-    try:
-        port = int(port_env) if port_env != 'NOT_SET' else 8080
-    except (ValueError, TypeError):
-        print(f"Failed to convert PORT '{port_env}' to int, using default 8080")
-        port = 8080
-        
-    print(f"Starting server on port: {port}")
+    # Railway 버그로 인해 PORT 변수가 제대로 저장되지 않으므로 강제로 8080 사용
+    port = 8080
+    print(f"PORT environment variable value: '{os.environ.get('PORT', 'NOT_SET')}'")
+    print(f"Forcing port to: {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
