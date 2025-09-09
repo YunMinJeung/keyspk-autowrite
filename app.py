@@ -27,6 +27,10 @@ NAVER_CLIENT_SECRET = os.getenv('NAVER_CLIENT_SECRET')
 def index():
     return render_template('index.html')
 
+@app.route('/test')
+def test():
+    return "<h1>Hello World! Railway is working!</h1>"
+
 @app.route('/topic-generator')
 def topic_generator():
     return render_template('topic_generator.html')
