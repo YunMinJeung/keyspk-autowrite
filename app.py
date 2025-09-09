@@ -1067,9 +1067,8 @@ JSON 형식으로 응답해주세요:
         ]
 
 if __name__ == '__main__':
-    # Railway 환경변수에서 포트를 가져오되, Railway가 예상하는 포트 사용
-    port = int(os.environ.get('PORT', 8080))
-    print(f"PORT environment variable value: '{os.environ.get('PORT', 'NOT_SET')}'")
-    print(f"All environment variables: {list(os.environ.keys())}")
+    # Railway가 자동으로 제공하는 PORT 환경변수 사용
+    port = int(os.environ.get('PORT', 3000))  # Railway 기본값은 보통 3000
+    print(f"Railway auto-provided PORT: '{os.environ.get('PORT', 'NOT_SET')}'")
     print(f"Using port: {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
