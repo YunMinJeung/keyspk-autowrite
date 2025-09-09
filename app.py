@@ -1067,6 +1067,10 @@ JSON 형식으로 응답해주세요:
         ]
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    # Railway 포트 감지 (여러 가지 방법 시도)
+    port = int(os.environ.get('PORT', 
+              os.environ.get('RAILWAY_PORT', 
+              os.environ.get('SERVER_PORT', 8080))))
+    print(f"Available environment variables: {[k for k in os.environ.keys() if 'PORT' in k.upper()]}")
     print(f"Starting server on port: {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
