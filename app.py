@@ -1070,5 +1070,6 @@ if __name__ == '__main__':
     # Railway 환경변수에서 포트를 가져오되, Railway가 예상하는 포트 사용
     port = int(os.environ.get('PORT', 8080))
     print(f"PORT environment variable value: '{os.environ.get('PORT', 'NOT_SET')}'")
+    print(f"All environment variables: {list(os.environ.keys())}")
     print(f"Using port: {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
