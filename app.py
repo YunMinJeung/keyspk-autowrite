@@ -25,7 +25,7 @@ NAVER_CLIENT_SECRET = os.getenv('NAVER_CLIENT_SECRET')
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return "<h1>Flask App is Working!</h1><p>This is the real Flask application</p>"
 
 @app.route('/test')
 def test():
